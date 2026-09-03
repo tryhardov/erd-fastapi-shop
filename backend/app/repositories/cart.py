@@ -25,18 +25,3 @@ class CartRepository:
         )
 
         return result.scalar_one_or_none()
-
-
-    async def delete(self, cart_id: int) -> None:
-        result = await self.db.execute(
-            select(Cart)
-            .where(Cart.id==cart_id)
-        )
-
-        db_cart = result.scalar_one_or_none()
-
-        if db_cart is None:
-            return None
-
-        await self.db.delete(db_cart)
-        await self.db.commit()

@@ -26,9 +26,3 @@ class CartItemResponse(CartItemBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class CartItemListResponse(BaseModel):
-    cart_items_list: list[CartItemResponse]
-    total_cart_items: int
-    total_cart_items_price: Decimal

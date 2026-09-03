@@ -19,16 +19,7 @@ class CartItemRepository:
         return result.scalar_one_or_none()
 
 
-    async def get_cart_items_by_cart(self, cart_id: int) -> list[CartItem]:
-        result = await self.db.execute(
-            select(CartItem)
-            .where(CartItem.cart_id==cart_id)
-        )
-
-        return result.scalars().all()
-
-
-    async def get_by_product(self, product_id: int, cart_id: int) -> CartItem | None:
+    async def get_by_product_and_cart(self, product_id: int, cart_id: int) -> CartItem | None:
         result = await self.db.execute(
             select(CartItem)
             .where(CartItem.product_id==product_id,
@@ -38,13 +29,8 @@ class CartItemRepository:
         return result.scalar_one_or_none()
 
 
-    async def create(self,cart_id: int, cart_item_data: CartItemCreate) -> CartItem | None:
+    async def create(self, cart_id: int, cart_item_data: CartItemCreate) -> CartItem:
         db_cart_item = CartItem(**cart_item_data.model_dump(), cart_id=cart_id)
-
-        existing_item = await self.get_by_product(cart_item_data.product_id, cart_id)
-        
-        if existing_item:
-            return None
 
         self.db.add(db_cart_item)
         await self.db.commit()
@@ -54,11 +40,7 @@ class CartItemRepository:
 
 
     async def update(self, cart_item_id: int, cart_item_data: CartItemUpdate) -> CartItem | None:
-        result = await self.db.execute(
-            select(CartItem)
-            .where(CartItem.id==cart_item_id)
-        )
-        db_cart_item = result.scalar_one_or_none()
+        db_cart_item = await self.get_by_id(cart_item_id)
 
         if db_cart_item is None:
             return None
@@ -73,11 +55,7 @@ class CartItemRepository:
 
 
     async def delete(self, cart_item_id: int) -> None:
-        result = await self.db.execute(
-            select(CartItem)
-            .where(CartItem.id==cart_item_id)
-        )
-        db_cart_item = result.scalar_one_or_none()
+        db_cart_item = await self.get_by_id(cart_item_id)
 
         if db_cart_item is None:
             return None

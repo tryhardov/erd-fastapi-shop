@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.exc import IntegrityError
 
 from app.models.cart import Cart
@@ -40,11 +40,19 @@ class UserRepository:
         return result.scalar_one_or_none()
 
 
-    async def create(self, user_data: UserCreate) -> User | None:
-        existing_user_by_username = await self.get_by_username(user_data.username)
-        existing_user_by_email = await self.get_by_email(user_data.email)
+    async def get_by_username_or_email(self, username: str, email: str) -> User | None:
+        result = await self.db.execute(
+            select(User)
+            .where(or_(User.username==username, User.email==email))
+        )
 
-        if existing_user_by_email or existing_user_by_username:
+        return result.scalar_one_or_none()
+
+
+    async def create(self, user_data: UserCreate) -> User | None:
+        existing_user = await self.get_by_username_or_email(user_data.username, user_data.email)
+
+        if existing_user:
             return None
 
         db_user = User(email=user_data.email, username=user_data.username,

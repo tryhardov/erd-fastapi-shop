@@ -14,7 +14,7 @@ class Cart(Base):
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
     user: Mapped['User'] = relationship(back_populates='cart')
-    items: Mapped[list['CartItem']] = relationship(back_populates='cart')
+    items: Mapped[list['CartItem']] = relationship(back_populates='cart', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'Cart(id = {self.id} || user_id = {self.user_id})'
